@@ -39,6 +39,12 @@ Install requirements
 pip install -r requirements.txt
 ```
 
+## .env
+
+Make `.env` file and fill with your values. Please take a look at `.env.template` file.
+
+W&B values needs only for `train` step.
+
 # Dataset
 
 For demo purposes we will use [Anthropic/hh-rlhf](https://huggingface.co/datasets/Anthropic/hh-rlhf)
