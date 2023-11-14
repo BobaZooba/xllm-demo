@@ -39,7 +39,7 @@ Install requirements
 pip install -r requirements.txt
 ```
 
-## .env
+## Environment variables
 
 Make `.env` file and fill with your values. Please take a look at `.env.template` file.
 
