@@ -682,4 +682,4 @@ in `Telegram` with dynamic AI characters, offering infinite scenarios
 You will get into exciting journeys and complete fascinating quests. Chat
 with `George Orwell`, `Tech Entrepreneur`, `Young Wizard`, `Noir Detective`, `Femme Fatale` and many more
 
-Try it now: [https://t.me/talequestbot](https://t.me/PapayaAIBot?start=Z2g)
+Try it now: [https://t.me/talequestbot](https://t.me/TaleQuestBot?start=Z2g)
