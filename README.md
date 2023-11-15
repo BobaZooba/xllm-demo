@@ -270,11 +270,7 @@ python3 xllm_demo/cli/quantize.py \
   --prepare_model_for_kbit_training False \
   --quantized_hub_model_id DemoXLLM7B-v1-GPTQ \
   --quantized_hub_private_repo True \
-  --low_cpu_mem_usage \
-  --path_to_env_file ./.env \
-  --collator_key last_part \
-  --trainer_key steps \
-  --experiment_key check_model
+  --path_to_env_file ./.env
 ```
 
 </details>
@@ -307,7 +303,8 @@ deepspeed --num_gpus=8 xllm_demo/cli/train.py \
   --hub_model_id BobaZooba/DemoXLLM7B-v1-LoRA \
   --hub_private_repo True \
   --report_to_wandb True \
-  --logging_steps 1 --num_train_epochs 3 \
+  --logging_steps 1 \
+  --num_train_epochs 3 \
   --save_steps 1000 \
   --max_steps 10050 \
   --path_to_env_file ./.env
@@ -644,7 +641,8 @@ deepspeed --num_gpus=8 xllm_demo/cli/train.py \
   --hub_model_id BobaZooba/DemoXLLM7B-v1-LoRA \
   --hub_private_repo True \
   --report_to_wandb True \
-  --logging_steps 1 --num_train_epochs 3 \
+  --logging_steps 1 \
+  --num_train_epochs 3 \
   --save_steps 1000 \
   --max_steps 10050 \
   --path_to_env_file ./.env \
