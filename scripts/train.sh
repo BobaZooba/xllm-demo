@@ -3,7 +3,7 @@
 python3 xllm_demo/cli/train.py \
   --use_gradient_checkpointing True \
   --deepspeed_stage 0 \
-  --stabilize True \
+  --stabilize False \
   --model_name_or_path mistralai/Mistral-7B-v0.1 \
   --use_flash_attention_2 False \
   --load_in_4bit True \
