@@ -25,7 +25,7 @@ from xllm_demo.core.trainer import MyLMTrainer
 
 
 def components_registry():
-    datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
-    collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
-    trainers_registry.add(key=TRAINER_KEY, item=MyLMTrainer)
-    experiments_registry.add(key=EXPERIMENT_KEY, item=MyExperiment)
+    datasets_registry.add(key=DATASET_KEY, value=AntropicDataset)
+    collators_registry.add(key=COLLATOR_KEY, value=LastPartCollator)
+    trainers_registry.add(key=TRAINER_KEY, value=MyLMTrainer)
+    experiments_registry.add(key=EXPERIMENT_KEY, value=MyExperiment)
