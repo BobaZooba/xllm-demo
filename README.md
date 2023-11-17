@@ -15,7 +15,8 @@ Using `xllm` to train a model is simple and involves these few steps:
 3. `Fuse` — If you used LoRA during the training, fuse LoRA
 4. `Quantize` — Make your model take less memory by quantizing it
 
-Remember, these tasks in `xllm` start from the command line. In this project, we will cover all aspects of customizing `xllm`.
+Remember, these tasks in `xllm` start from the command line. In this project, we will cover all aspects of
+customizing `xllm`.
 
 [<img src="https://github.com/BobaZooba/xllm/blob/main/static/images/xllm-badge.png" alt="Powered by X—LLM" width="175" height="32"/>](https://github.com/BobaZooba/xllm)
 
@@ -24,11 +25,15 @@ Remember, these tasks in `xllm` start from the command line. In this project, we
 - [X—LLM Repo](https://github.com/BobaZooba/xllm): main repo of the `xllm` library
 - [Quickstart](https://github.com/KompleteAI/xllm/tree/docs-v1#quickstart-): basics of `xllm`
 - [Examples](https://github.com/BobaZooba/xllm/examples): minimal examples of using `xllm`
-- [Guide](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md): here, we go into detail about everything the library can
+- [Guide](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md): here, we go into detail about everything the library
+  can
   do
-- [Demo project](https://github.com/BobaZooba/xllm-demo): here's a minimal step-by-step example of how to use X—LLM and fit it
+- [Demo project](https://github.com/BobaZooba/xllm-demo): here's a minimal step-by-step example of how to use X—LLM and
+  fit it
   into your own project
-- [WeatherGPT](https://github.com/BobaZooba/wgpt): this repository features an example of how to utilize the xllm library. Included is a solution for a common type of assessment given to LLM engineers, who typically earn between $120,000 to $140,000 annually
+- [WeatherGPT](https://github.com/BobaZooba/wgpt): this repository features an example of how to utilize the xllm
+  library. Included is a solution for a common type of assessment given to LLM engineers, who typically earn between
+  $120,000 to $140,000 annually
 - [Shurale](https://github.com/BobaZooba/shurale): project with the finetuned 7B Mistal model
 
 # Installation
@@ -45,10 +50,10 @@ Activate venv
 source venv/bin/activate
 ```
 
-Install requirements
+Install project (editable) and requirements
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Environment variables
@@ -61,11 +66,15 @@ W&B values needs only for `train` step.
 
 For demo purposes we will use [Anthropic/hh-rlhf](https://huggingface.co/datasets/Anthropic/hh-rlhf)
 
-This dataset is widely used in the field of language models. It is made up of pairs of dialogues, labeled as `chosen` and `rejected`, with the distinction being only in the final line of dialogue. Our approach to utilizing this dataset will be unconventional; rather than adhering to the authors' original design, we will select the `chosen` dialogues and use them to train a conventional language model to predict the following token.
+This dataset is widely used in the field of language models. It is made up of pairs of dialogues, labeled as `chosen`
+and `rejected`, with the distinction being only in the final line of dialogue. Our approach to utilizing this dataset
+will be unconventional; rather than adhering to the authors' original design, we will select the `chosen` dialogues and
+use them to train a conventional language model to predict the following token.
 
 To achieve this, we will need to implement a new `xllm` dataset.
 
-Implementing a new dataset is very simple. You need to create a new class that inherits from `BaseDataset` and implement two methods: `get_data` (classmethod) and `get_sample`.
+Implementing a new dataset is very simple. You need to create a new class that inherits from `BaseDataset` and implement
+two methods: `get_data` (classmethod) and `get_sample`.
 
 ```python
 from typing import Tuple, Dict, List, Optional
@@ -74,35 +83,42 @@ from xllm import Config
 from xllm.datasets import BaseDataset
 from xllm.types import RawSample
 
+
 class AntropicDataset(BaseDataset):
 
-    @classmethod
-    def get_data(cls, config: Config) -> Tuple[List[RawSample], Optional[List[RawSample]]]:
-        ...
-    
-    def get_sample(self, index: int) -> RawSample:
-        ...
+  @classmethod
+  def get_data(cls, config: Config) -> Tuple[List[RawSample], Optional[List[RawSample]]]:
+    ...
+
+  def get_sample(self, index: int) -> RawSample:
+    ...
 ```
 
-Please read this information to understand what you need to do at each method: [How to implement dataset](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-dataset)
+Please read this information to understand what you need to do at each
+method: [How to implement dataset](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-dataset)
 
-In brief, the `get_data` method should return a list of training samples (and optionally evaluation samples) with arbitrary structure. In the `get_sample` method, you need to transform each sample you created in `get_data` into a specific structure, an example of which is provided below.
+In brief, the `get_data` method should return a list of training samples (and optionally evaluation samples) with
+arbitrary structure. In the `get_sample` method, you need to transform each sample you created in `get_data` into a
+specific structure, an example of which is provided below.
 
 Example of `get_sample` output:
+
 ```python
 {
-    "text_parts": [
-        "Hello!",
-        "My name is Boris"
-    ]
+  "text_parts": [
+    "Hello!",
+    "My name is Boris"
+  ]
 }
 ```
 
 # Registry
 
-We need to register new components such as dataset, collator, trainer, and experiment to make them accessible through the `xllm` command-line tools.
+We need to register new components such as dataset, collator, trainer, and experiment to make them accessible through
+the `xllm` command-line tools.
 
-To do this, let's implement the `components_registry` function. We need to import `datasets_registry` and add `AntropicDataset` to it with the key `antropic`. We can place the key `antropic` in the constants of our project.
+To do this, let's implement the `components_registry` function. We need to import `datasets_registry` and
+add `AntropicDataset` to it with the key `antropic`. We can place the key `antropic` in the constants of our project.
 
 `xllm_demo/core/registry.py`
 
@@ -112,25 +128,28 @@ from xllm.datasets import datasets_registry
 from xllm_demo.core.constants import DATASET_KEY
 from xllm_demo.core.dataset import AntropicDataset
 
+
 def components_registry():
-    datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
+  datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
 ```
 
 # CLI
 
-At this stage, we are now ready to initiate the first step in our pipeline, which is `prepare`. This step is responsible for data preparation, downloading the tokenizer, and the model.
+At this stage, we are now ready to initiate the first step in our pipeline, which is `prepare`. This step is responsible
+for data preparation, downloading the tokenizer, and the model.
 
 Let's make a file `prepare.py`
 
 `xllm_demo/cli/prepare.py`
+
 ```python
 from xllm.cli import cli_run_prepare
 
 from xllm_demo.core.registry import components_registry
 
 if __name__ == "__main__":
-    components_registry()
-    cli_run_prepare()
+  components_registry()
+  cli_run_prepare()
 ```
 
 Now we can run the `prepare` step, specifying the key of the new dataset.
@@ -139,43 +158,48 @@ Now we can run the `prepare` step, specifying the key of the new dataset.
 python xllm_demo/cli/prepare.py --dataset_key antropic
 ```
 
-More details you could find here: [How to add CLI tools to your project](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-add-cli-tools-to-your-project)
+More details you could find
+here: [How to add CLI tools to your project](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-add-cli-tools-to-your-project)
 
 ### Extend CLI
 
-Let's add the remaining CLI functions: `train`, `fuse`, `quantize`. In each function, we will call the component registration and pass the new config.
+Let's add the remaining CLI functions: `train`, `fuse`, `quantize`. In each function, we will call the component
+registration and pass the new config.
 
 `xllm_demo/cli/train.py`
+
 ```python
 from xllm.cli import cli_run_train
 
 from xllm_demo.core.registry import components_registry
 
 if __name__ == "__main__":
-    components_registry()
-    cli_run_train()
+  components_registry()
+  cli_run_train()
 ```
 
 `xllm_demo/cli/fuse.py`
+
 ```python
 from xllm.cli import cli_run_fuse
 
 from xllm_demo.core.registry import components_registry
 
 if __name__ == "__main__":
-    components_registry()
-    cli_run_fuse()
+  components_registry()
+  cli_run_fuse()
 ```
 
 `xllm_demo/cli/quantize.py`
+
 ```python
 from xllm.cli import cli_run_quantize
 
 from xllm_demo.core.registry import components_registry
 
 if __name__ == "__main__":
-    components_registry()
-    cli_run_quantize()
+  components_registry()
+  cli_run_quantize()
 ```
 
 ## Run
@@ -335,7 +359,8 @@ Run all steps
 ./scripts/quantize.sh
 ```
 
-**IMPORTANT:** Actually, we can already run our entire project by implementing only the new dataset. All other steps are optional.
+**IMPORTANT:** Actually, we can already run our entire project by implementing only the new dataset. All other steps are
+optional.
 
 # Collator
 
@@ -353,14 +378,15 @@ from xllm.collators import BaseCollator
 
 class LastPartCollator(BaseCollator):
 
-    def parse_batch(self, raw_batch: List[RawSample]) -> Batch:
-        ...
+  def parse_batch(self, raw_batch: List[RawSample]) -> Batch:
+    ...
 ```
 
 Your task is to write the logic of how to process the list in order to eventually obtain a `Batch`. A `Batch` is a
 dictionary where the key is a string, and the value is a `PyTorch Tensor`.
 
-More details you could find here: [How to implement collator](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-collator)
+More details you could find
+here: [How to implement collator](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-collator)
 
 ### Registry
 
@@ -376,9 +402,10 @@ from xllm_demo.core.constants import DATASET_KEY, COLLATOR_KEY
 from xllm_demo.core.dataset import AntropicDataset
 from xllm_demo.core.collator import LastPartCollator
 
+
 def components_registry():
-    datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
-    collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
+  datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
+  collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
 ```
 
 # Config
@@ -399,21 +426,25 @@ from xllm_demo.core.constants import DATASET_KEY
 
 @dataclass
 class DemoXLLMConfig(Config):
-    text_field: str = field(default="chosen", metadata={
-        "help": "Field for Antropic RLHF dataset",
-    })
-    dataset_key: str = field(default=DATASET_KEY, metadata={
-        "help": "Dataset key",
-    })
+  text_field: str = field(default="chosen", metadata={
+    "help": "Field for Antropic RLHF dataset",
+  })
+  dataset_key: str = field(default=DATASET_KEY, metadata={
+    "help": "Dataset key",
+  })
 ```
 
-At the moment of calling `get_data` of the newly implemented `Dataset`, we can choose not the `chosen` dialog but, for example, the `rejected` one. Although this logic is made for demonstration purposes, it can be useful in real projects. Now we will be able to pass through the command line which field needs to be selected.
+At the moment of calling `get_data` of the newly implemented `Dataset`, we can choose not the `chosen` dialog but, for
+example, the `rejected` one. Although this logic is made for demonstration purposes, it can be useful in real projects.
+Now we will be able to pass through the command line which field needs to be selected.
 
-Now by default, the `dataset_key` in the project is the one that we have recently implemented. Therefore, there is no need for us to pass it every time we call the CLI functions. This is an optional step for demonstration.
+Now by default, the `dataset_key` in the project is the one that we have recently implemented. Therefore, there is no
+need for us to pass it every time we call the CLI functions. This is an optional step for demonstration.
 
 Now we need to pass the new config class to every CLI method that we implement.
 
 `xllm_demo/cli/prepare.py`
+
 ```python
 from xllm.cli import cli_run_prepare
 
@@ -421,8 +452,8 @@ from xllm_demo.core.config import DemoXLLMConfig
 from xllm_demo.core.registry import components_registry
 
 if __name__ == "__main__":
-    components_registry()
-    cli_run_prepare(config_cls=DemoXLLMConfig)
+  components_registry()
+  cli_run_prepare(config_cls=DemoXLLMConfig)
 ```
 
 Run CLI
@@ -431,13 +462,18 @@ Run CLI
 python xllm_demo/cli/prepare.py --text_field rejected
 ```
 
-Please note that we do not need to register a new config. We need to explicitly specify it in the calls to the `xllm` CLI functions.
+Please note that we do not need to register a new config. We need to explicitly specify it in the calls to the `xllm`
+CLI functions.
 
-More details you could find here: [How to extend config](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-extend-config-1)
+More details you could find
+here: [How to extend config](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-extend-config-1)
 
-In this example, we do not need to update the config for the other steps (`train`, `fuse`, `quantize`), because all that we added to the config only concerns the preparation of the dataset, meaning only the `prepare` step. However, sometimes it may be necessary. We can do this similarly to the `prepare` step.
+In this example, we do not need to update the config for the other steps (`train`, `fuse`, `quantize`), because all that
+we added to the config only concerns the preparation of the dataset, meaning only the `prepare` step. However, sometimes
+it may be necessary. We can do this similarly to the `prepare` step.
 
 `xllm_demo/cli/train.py`
+
 ```python
 from xllm.cli import cli_run_train
 
@@ -445,8 +481,8 @@ from xllm_demo.core.config import DemoXLLMConfig
 from xllm_demo.core.registry import components_registry
 
 if __name__ == "__main__":
-    components_registry()
-    cli_run_train(config_cls=DemoXLLMConfig)
+  components_registry()
+  cli_run_train(config_cls=DemoXLLMConfig)
 ```
 
 # Trainer
@@ -454,6 +490,7 @@ if __name__ == "__main__":
 We can also implement a new `trainer`. It should inherit from the standard trainer of `transformers`.
 
 `xllm_demo/core/trainer.py`
+
 ```python
 from typing import Union, Dict, Tuple, Optional
 
@@ -470,28 +507,28 @@ from xllm_demo.core.config import DemoXLLMConfig
 
 class MyLMTrainer(LMTrainer):
 
-    def __init__(
-            self,
-            config: DemoXLLMConfig,
-            model: Union[PreTrainedModel, PeftModel],
-            args: TrainingArguments,
-            data_collator: BaseCollator,
-            train_dataset: BaseDataset,
-            ignore_index: int,
-            eval_dataset: Optional[BaseDataset] = None,
-    ):
-        super().__init__(config, model, args, data_collator, train_dataset, ignore_index, eval_dataset)
+  def __init__(
+    self,
+    config: DemoXLLMConfig,
+    model: Union[PreTrainedModel, PeftModel],
+    args: TrainingArguments,
+    data_collator: BaseCollator,
+    train_dataset: BaseDataset,
+    ignore_index: int,
+    eval_dataset: Optional[BaseDataset] = None,
+  ):
+    super().__init__(config, model, args, data_collator, train_dataset, ignore_index, eval_dataset)
 
-        self.my_steps = 0
+    self.my_steps = 0
 
-    def compute_loss(
-            self,
-            model: Union[PreTrainedModel, PeftModel],
-            inputs: Dict[str, Tensor],
-            return_outputs: bool = False,
-    ) -> Union[Tensor, Tuple[Tensor, Dict[str, Tensor]]]:
-        self.my_steps += 1
-        return super().compute_loss(model=model, inputs=inputs, return_outputs=return_outputs)
+  def compute_loss(
+    self,
+    model: Union[PreTrainedModel, PeftModel],
+    inputs: Dict[str, Tensor],
+    return_outputs: bool = False,
+  ) -> Union[Tensor, Tuple[Tensor, Dict[str, Tensor]]]:
+    self.my_steps += 1
+    return super().compute_loss(model=model, inputs=inputs, return_outputs=return_outputs)
 ```
 
 Above, we simply added a step counter.
@@ -510,21 +547,25 @@ from xllm_demo.core.dataset import AntropicDataset
 from xllm_demo.core.collator import LastPartCollator
 from xllm_demo.core.trainer import MyLMTrainer
 
+
 def components_registry():
-    datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
-    collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
-    trainers_registry.add(key=TRAINER_KEY, item=MyLMTrainer)
+  datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
+  collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
+  trainers_registry.add(key=TRAINER_KEY, item=MyLMTrainer)
 ```
 
-More details you could find here: [How to implement trainer](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-trainer)
+More details you could find
+here: [How to implement trainer](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-trainer)
 
 # Experiment
 
-The experiment acts as an aggregator for training, where the necessary components are loaded. We can customize the `Experiment` by overriding hook methods.
+The experiment acts as an aggregator for training, where the necessary components are loaded. We can customize
+the `Experiment` by overriding hook methods.
 
 Let's add a few checks and slightly expand the logging.
 
 `xllm_demo/core/experiment.py`
+
 ```python
 from xllm.experiments import Experiment
 from xllm import dist_logger
@@ -532,18 +573,18 @@ from xllm import dist_logger
 
 class MyExperiment(Experiment):
 
-    def before_model_build(self) -> None:
-        assert self.model is None
-        dist_logger.info("Model is not None", local_rank=self.config.local_rank)
+  def before_model_build(self) -> None:
+    assert self.model is None
+    dist_logger.info("Model is not None", local_rank=self.config.local_rank)
 
-    def after_model_build(self) -> None:
-        assert self.model is not None
-        dist_logger.info("Model is not None", local_rank=self.config.local_rank)
+  def after_model_build(self) -> None:
+    assert self.model is not None
+    dist_logger.info("Model is not None", local_rank=self.config.local_rank)
 
-    def after_train(self) -> None:
-        if hasattr(self.model, "my_steps"):
-            num_steps = self.model.my_steps
-            dist_logger.info(f"Steps: {num_steps}", local_rank=self.config.local_rank)
+  def after_train(self) -> None:
+    if hasattr(self.model, "my_steps"):
+      num_steps = self.model.my_steps
+      dist_logger.info(f"Steps: {num_steps}", local_rank=self.config.local_rank)
 ```
 
 Let's register the new experiment.
@@ -562,19 +603,24 @@ from xllm_demo.core.collator import LastPartCollator
 from xllm_demo.core.trainer import MyLMTrainer
 from xllm_demo.core.experiment import MyExperiment
 
+
 def components_registry():
-    datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
-    collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
-    trainers_registry.add(key=TRAINER_KEY, item=MyLMTrainer)
-    experiments_registry.add(key=EXPERIMENT_KEY, item=MyExperiment)
+  datasets_registry.add(key=DATASET_KEY, item=AntropicDataset)
+  collators_registry.add(key=COLLATOR_KEY, item=LastPartCollator)
+  trainers_registry.add(key=TRAINER_KEY, item=MyLMTrainer)
+  experiments_registry.add(key=EXPERIMENT_KEY, item=MyExperiment)
 ```
 
-More details you could find here: [How to implement experiment](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-experiment)
+More details you could find
+here: [How to implement experiment](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md#how-to-implement-experiment)
 
 # Run
-Having implemented and registered the new components, we can make some adjustments to the training bash scripts, as only in this step might the new components be utilized.
+
+Having implemented and registered the new components, we can make some adjustments to the training bash scripts, as only
+in this step might the new components be utilized.
 
 We add three new lines:
+
 ```bash
   --collator_key last_part \
   --trainer_key steps \
@@ -666,7 +712,8 @@ Afterward, we can run all the scripts just as we did before.
 
 # Conclusions
 
-`xllm` library has a plethora of customization options. Not all of them are necessary, and most often you will only utilize the implementation of a new dataset, which is by design.
+`xllm` library has a plethora of customization options. Not all of them are necessary, and most often you will only
+utilize the implementation of a new dataset, which is by design.
 
 # 🎉 Done! You are awesome!
 
@@ -677,11 +724,15 @@ Afterward, we can run all the scripts just as we did before.
 - [X—LLM Repo](https://github.com/BobaZooba/xllm): main repo of the `xllm` library
 - [Quickstart](https://github.com/KompleteAI/xllm/tree/docs-v1#quickstart-): basics of `xllm`
 - [Examples](https://github.com/BobaZooba/xllm/examples): minimal examples of using `xllm`
-- [Guide](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md): here, we go into detail about everything the library can
+- [Guide](https://github.com/BobaZooba/xllm/blob/main/GUIDE.md): here, we go into detail about everything the library
+  can
   do
-- [Demo project](https://github.com/BobaZooba/xllm-demo): here's a minimal step-by-step example of how to use X—LLM and fit it
+- [Demo project](https://github.com/BobaZooba/xllm-demo): here's a minimal step-by-step example of how to use X—LLM and
+  fit it
   into your own project
-- [WeatherGPT](https://github.com/BobaZooba/wgpt): this repository features an example of how to utilize the xllm library. Included is a solution for a common type of assessment given to LLM engineers, who typically earn between $120,000 to $140,000 annually
+- [WeatherGPT](https://github.com/BobaZooba/wgpt): this repository features an example of how to utilize the xllm
+  library. Included is a solution for a common type of assessment given to LLM engineers, who typically earn between
+  $120,000 to $140,000 annually
 - [Shurale](https://github.com/BobaZooba/shurale): project with the finetuned 7B Mistal model
 
 ## Tale Quest
